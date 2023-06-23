@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WaterNet.Utils;
 
 namespace WaterNet.Basic
 {
@@ -10,12 +11,12 @@ namespace WaterNet.Basic
     {
         public static byte[] UShortToBytes(ushort value)
         {
-            return BitConverter.GetBytes(value);
+            return EndianUtils.LittleEndianToBigEndian(BitConverter.GetBytes(value));
         }
 
         public static ushort BytesToUShort(byte[] bytes)
         {
-            return BitConverter.ToUInt16(bytes, 0);
+            return BitConverter.ToUInt16(EndianUtils.Reverse(bytes), 0);
         }
 
         public static byte[] UShortToBytes_Bit(ushort value)

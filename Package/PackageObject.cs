@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using WaterNet.Basic;
+using WaterNet.Errors;
 using WaterNet.Utils;
 
 namespace WaterNet.Package
@@ -64,6 +67,38 @@ namespace WaterNet.Package
 
         public ByteObject ToByteObject() {
             return new ByteObject(this.ToBytesArray());
+        }
+
+        public static PackageObject Parsing(byte[] data, bool compress) {
+            ByteObject obj = new ByteObject(data);
+            if (!compress)
+            {
+                int pkg_long = obj.NextVarInt();
+                int pkg_id = obj.NextVarInt();
+                byte[] pkg_data = obj.Data;
+                PackageObject packageObject = new PackageObject(pkg_id, pkg_data, compress);
+                packageObject.package_long = pkg_long;
+                return packageObject;
+            }
+            else {
+                int pkg_long = obj.NextVarInt();
+                int nocmp_long = obj.NextVarInt();
+                byte[] cmp_data = obj.Data;
+                byte[] nocmp_data = ZLibUtils.Decompress(cmp_data);
+                if (nocmp_data.Length != nocmp_long) {
+                    throw new PackageParsingException("The length of the data marked in the package does not match the length of the extracted data.");
+                }
+                ByteObject bobj = new ByteObject(nocmp_data);
+                int pkg_id = bobj.NextVarInt();
+                byte[] pkg_data = bobj.Data;
+
+                PackageObject packageObject = new PackageObject(pkg_id, pkg_data, compress);
+                packageObject.package_long = pkg_long;
+                return packageObject;
+
+
+            }
+            
         }
 
 
